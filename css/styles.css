@@ -4,6 +4,8 @@ table{
 }
 body{
 	width: 420px;
+	display: grid;
+	grid-template-columns: 420px
 }
 td{
 	border: 1px solid black;
@@ -13,6 +15,9 @@ td{
 }
 input[type="number"]{
 	width: 40px;
+}
+p{
+	margin: 10px 0 0 0;
 }
 .inline-block{
 	display:inline-block;
@@ -64,7 +69,18 @@ input[type="number"]{
 .upNext{
 	animation: nextHit 2s infinite linear;
 }
-
+.topConnction{
+	grid-column: 0;
+	grid-row: 0;
+}
+.friendlyBoard{
+	grid-column: 1;
+}
+.enemyBoard{
+	grid-column: 2;
+	grid-row: 2;
+	margin-left: 10px;
+}
 @keyframes nextHit{
 	50%{
 		background-color: yellow;

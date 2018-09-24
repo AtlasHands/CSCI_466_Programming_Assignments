@@ -6,25 +6,72 @@ function makeBattleShipTable(height, width){
 			var column = $(document.createElement("td"));
 			column.attr("id","friendly-" + x + "-"+ y);
 			row.append(column);
-
 		}
 		var table = $(document.getElementById("battleShipTable"));
 		table.append(row);
 	}
 }
-$(".friendly").on("click",function(){
+$(".enemy").on("click",function(){
 	if($(this).hasClass("hit") || $(this).hasClass("miss")){
 
 	}else{
-		$(".friendly").removeClass("upNext");
-		$("#enterButton").text("Confirm selection")
-		$("#enterButton").addClass("ready");
-		$(this).addClass("upNext");
+		if($(this).hasClass("upNext")){
+			$(this).removeClass("upNext");
+			$("#enterButton").text("Select Tile")
+			$("#enterButton").removeClass("ready");
+		}else{
+			$(".enemy").removeClass("upNext");
+			$("#enterButton").text("Confirm selection")
+			$("#enterButton").addClass("ready");
+			$(this).addClass("upNext");
+		}	
 	}
-	
 });
+$("#connectFriendlyIP").on("click",function(){
+	var ip = $("#friendlyIP").val();
+	var ajaxSettings ={
+		url: "http://" + ip + "/api/getBoard",
+		method: "GET",
+	}
+	var request = $.ajax(ajaxSettings);
+	request.always(function(data,status){
+		if(status === "success"){
+			var keyValues = parseResponse(data);
+			var hitMap = getValueFromKey(keyValues,"hitmap");
+			parseHitMap(hitMap,"friendly");
+		}
+	});
+});
+$("#connectEnemyIP").on("click",function(){
+	var ip = $("#enemyIP").val();
+	var ajaxSettings ={
+		url: "http://" + ip + "/api/getBoard",
+		method: "GET"
+	}
+	$.ajax(ajaxSettings);
+	var request = $.ajax(ajaxSettings);
+	request.always(function(data,status){
+		if(status === "success"){
+			var keyValues = parseResponse(data);
+			var hitMap = getValueFromKey(keyValues,"hitmap");
+			parseHitMap(hitMap,"enemy");
+		}
+	});
+})
+function parseHitMap(hitMap,board){
+	var split = hitMap.split("\n");
+	for(var x = 0;x<split.length;x++){
+		for(var y =0;y<split[0].length;y++){
+			if(split[x][y] == "H"){
+				changeBoard(x,y,"hit",board);
+			}else if(split[x][y] == "M"){
+				changeBoard(x,y,"miss",board);
+			}
+		}
+	}
+}
 $("#enterButton").on("click",function(){
-	var server = $("#serverIP").val();
+	var server = $("#friendlyIP").val();
 	var selected = $(".upNext");
 	var id = selected.attr("id");
 	coords = id.split("-");
@@ -43,10 +90,10 @@ $("#enterButton").on("click",function(){
 			$("#enterButton").removeClass("ready");
 			if(hasKey(keyValues,"hit")){
 				if(getValueFromKey(keyValues,"hit") === "1"){
-					changeBoard(x,y,"hit")
+					changeBoard(x,y,"hit","enemy")
 				}
 			}else if(getValueFromKey(keyValues,"miss")){
-				changeBoard(x,y,"miss")
+				changeBoard(x,y,"miss","enemy")
 			}
 		}
 	});
@@ -78,8 +125,8 @@ function parseResponse(response){
 	}
 	return keyValues;
 }
-function changeBoard(x,y,type){
-	var square = $(("#friendly-"+ x + "-" + y));
+function changeBoard(x,y,type,board){
+	var square = $(("#" + board + "-"+ x + "-" + y));
 	if(square === $()){
 		throw new Error("Whoops, coordinate doesn't exist");
 	}
