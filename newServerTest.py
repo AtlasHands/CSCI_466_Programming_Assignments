@@ -8,11 +8,22 @@ board = open("own_board.txt","r")
 boardContents = board.read()
 boardContents = boardContents.split("\n")
 #initializing the hitMap for the own board
-ownBoardHitMap = arr = eval('[["_"]*10]*10')
+ownBoardHitMap = [["_" for i in range(10)] for j in range(10)]
+def initializeHitMap():
+    global ownBoardHitMap
+    for i in range(10):
+        ownBoardHitMap.append("_")
+        for j in range(10):
+            ownBoardHitMap[i].append("_")
+initializeHitMap();
 def checkHit(x,y):
     global boardContents
     if boardContents[x][y] == "C":
         return True
+def print2dArray(array):
+    for i in range(len(array)):
+        for j in range(len(array[0])):
+            print(array[i][j])
 def checkHitMap(x,y):
     global ownBoardHitMap
     location = ownBoardHitMap[x][y];
@@ -68,6 +79,8 @@ class BattleShipServer(BaseHTTPRequestHandler):
             currentLocation = checkHitMap(x,y)
             print(currentLocation)
             if(currentLocation != "_"):
+                global ownBoardHitMap
+                print2dArray(ownBoardHitMap)
                 self.send_response(410)
                 writeHeaders(self)
             else:
