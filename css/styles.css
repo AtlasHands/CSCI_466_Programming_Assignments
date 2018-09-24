@@ -1,0 +1,83 @@
+table{
+	animation: ocean 8s infinite linear;
+	border: 1px solid black;
+}
+body{
+	width: 420px;
+}
+td{
+	border: 1px solid black;
+	min-width: 40px;
+	height: 40px;
+	cursor: pointer;
+}
+input[type="number"]{
+	width: 40px;
+}
+.inline-block{
+	display:inline-block;
+}
+.hit{
+	background-color: red;
+	cursor: default;
+}
+.miss{
+	background-color: grey;
+	cursor: default;
+}
+.rightALittle{
+	position: relative;
+	left: 17px;
+}
+.control{
+	text-align: center;
+	margin: 0;
+	font-size: 20px;
+	background-color: grey;
+	transition: background-color .2s;
+	width: 20px;
+	margin-right: 10px;
+	cursor: pointer;
+}
+.control:hover{
+	background-color: lightgrey;
+}
+.button{
+	font-weight:bold;
+	font-size: 20px;
+	background-color: lightgrey;
+	border: 1px solid darkgrey;
+	transition: background-color .3s;
+	cursor: pointer;
+	border-radius: 3px;
+	text-align: center;
+}
+.button:hover{
+	background-color:darkgrey;
+}
+.button.ready{
+	background-color:lightgreen;
+}
+.friendly{
+	transition: background-color .2s;
+}
+.upNext{
+	animation: nextHit 2s infinite linear;
+}
+
+@keyframes nextHit{
+	50%{
+		background-color: yellow;
+	}
+}
+@keyframes ocean{
+	0%{
+		background-color: #1D6498;
+	}
+	50%{
+		background-color: #73AFD4;
+	}
+	100%{
+		background-color: #1D6498;
+	}
+}
