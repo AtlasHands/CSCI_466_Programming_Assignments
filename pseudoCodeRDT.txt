@@ -1,0 +1,32 @@
+Application calls send
+sequenceNumber = 0;
+sequenceNumbers = [1,0]
+function rdt_send(data):
+	sndpkt = make_pkt(sequenceNumber,data,checksum)
+	udt_send(sndpkt)
+	response = rdt_rcv()
+	while true
+		if(corrupt(response) || isNAK(resonse)):
+			udt_send(sndpkt)
+			response = rdt_rcv(rcvpkt)
+		else if(!corrupt(response) and isACK(response):
+			sequenceNumber = sequenceNumbers[sequenceNumber]
+			break
+sequenceNumber = 0
+sequenceNumbers = [1,0]
+function listenForData():
+	response = rdt_rcv()
+	while true
+		if corrupt(response):
+			sndpkt = make_pkt(NAK,chksum)
+			udt_send(sndpkt)
+		else if !corrupt(response) and get_seq_num(response) == sequenceNumbers[sequenceNumber]:
+			sndpkt = make_pkt(ACK,chksum)
+			udt_send(sndpkt)
+		else if !corrupt(response) and get_seq_num(rcvpkt) == sequenceNumber:
+			data = extract(packet)
+			deliver_data(data)
+			sndpkt = make_pkt(ACK,chksum)
+			udt_send(sndpkt)
+			sequenceNumber = sequenceNumber[sequenceNumber]
+			break

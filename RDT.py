@@ -36,7 +36,16 @@ class Packet:
         #compile into a string
         return length_S + seq_num_S + checksum_S + self.msg_S
    
-    
+    def getChecksum(self):
+         #convert sequence number of a byte field of seq_num_S_length bytes
+        seq_num_S = str(self.seq_num).zfill(self.seq_num_S_length)
+        #convert length to a byte field of length_S_length bytes
+        length_S = str(self.length_S_length + len(seq_num_S) + self.checksum_length + len(self.msg_S)).zfill(self.length_S_length)
+        #compute the checksum
+        checksum = hashlib.md5((length_S+seq_num_S+self.msg_S).encode('utf-8'))
+        checksum_S = checksum.hexdigest()
+        return checksum_S
+
     @staticmethod
     def corrupt(byte_S):
         #extract the fields
@@ -50,8 +59,6 @@ class Packet:
         computed_checksum_S = checksum.hexdigest()
         #and check if the same
         return checksum_S != computed_checksum_S
-        
-
 class RDT:
     ## latest sequence number used in a packet
     seq_num = 1
@@ -89,9 +96,20 @@ class RDT:
             self.byte_buffer = self.byte_buffer[length:]
             #if this was the last packet, will return on the next iteration
             
-    
+    sequenceNumber = 0
+    sequenceNumbers = [1,0]
     def rdt_2_1_send(self, msg_S):
-        pass
+        packet = Packet(self.sequenceNumber,mgs_s)
+        self.network.udt_send(packet.get_byte_S())
+        response = self.network.udt_recieve()
+        self.byte_buffer += response
+        while True:
+            if(corrupt(self.byte_buffer) or self.byte_buffer == "NACK".encode("utf-8")):
+                self.network.udt_send(msg_S)
+                self.byte_buffer = self.network.udt_receive()
+            elif(not corrupt(self.byte_buffer) and self.byte_buffer == "ACK".encode("utf-8")):
+                sequenceNumber = sequenceNumbers[sequenceNumber]
+                break
         
     def rdt_2_1_receive(self):
         pass
