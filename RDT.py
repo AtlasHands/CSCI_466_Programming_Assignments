@@ -99,20 +99,31 @@ class RDT:
     sequenceNumber = 0
     sequenceNumbers = [1,0]
     def rdt_2_1_send(self, msg_S):
-        packet = Packet(self.sequenceNumber,mgs_s)
+        packet = Packet(self.sequenceNumber,msg_S)
         self.network.udt_send(packet.get_byte_S())
-        response = self.network.udt_recieve()
+        response = self.network.udt_receive()
         self.byte_buffer += response
+        responsePacket = Packet(self.sequenceNumber,response)
         while True:
-            if(corrupt(self.byte_buffer) or self.byte_buffer == "NACK".encode("utf-8")):
-                self.network.udt_send(msg_S)
+            if(Packet.corrupt(responsePacket.get_byte_S()) or self.byte_buffer == "NACK".encode("utf-8")):
+                self.network.udt_send(packet)
                 self.byte_buffer = self.network.udt_receive()
-            elif(not corrupt(self.byte_buffer) and self.byte_buffer == "ACK".encode("utf-8")):
-                sequenceNumber = sequenceNumbers[sequenceNumber]
+            elif(not Packet.corrupt(responsePacket.get_byte_S()) or self.byte_buffer == "ACK".encode("utf-8")):
+                self.sequenceNumber = self.sequenceNumbers[self.sequenceNumber]
                 break
+            else:
+                print("No condition matched")
         
     def rdt_2_1_receive(self):
-        pass
+        response = self.network.udt_receive()
+        responsePacket = Packet(self.sequenceNumber,response);
+        self.byte_buffer += response
+        while True:
+            if(not Packet.corrupt(responsePacket.get_byte_S)):
+                self.network.send_ACK();
+                return responsePacket.msg_S
+            else:
+                self.network.send_NACK();
     
     def rdt_3_0_send(self, msg_S):
         pass

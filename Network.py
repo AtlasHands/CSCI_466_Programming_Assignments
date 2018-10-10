@@ -62,7 +62,16 @@ class NetworkLayer:
             if sent == 0:
                 raise RuntimeError("socket connection broken")
             totalsent = totalsent + sent
-        
+            
+    def send_NACK(self):
+        totalsent = 0
+        msg_S = "NACK"
+        while totalsent < len("ACK"):
+            sent = self.conn.send(msg_S[totalsent:].encode('utf-8'))
+            if sent == 0:
+                raise RuntimeError("socket connection broken")
+            totalsent = totalsent + sent
+
     def udt_send(self, msg_S):
         #return without sending if the packet is being dropped
         if random.random() < self.prob_pkt_loss:
