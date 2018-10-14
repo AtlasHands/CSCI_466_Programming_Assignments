@@ -93,6 +93,7 @@ class RDT:
                 return ret_S #not enough bytes to read the whole packet
             #create packet from buffer content and add to return string
             if(Packet.corrupt(self.byte_buffer[0:length])):
+                self.byte_buffer = self.byte_buffer[length:]
                 return "Corrupt"
             p = Packet.from_byte_S(self.byte_buffer[0:length])
             ret_S = p.msg_S if (ret_S is None) else ret_S + p.msg_S
@@ -112,7 +113,7 @@ class RDT:
     def rdt_2_1_send(self, msg_S):
         while True:
             self.rdt_1_0_send(msg_S) #Sending with rdt_1_0
-            sleep(.1)
+            sleep(1)
             msg_R = self.getResponse() #Get Valid response
             if(msg_R == "Corrupt"):#if corrupt, print corrupt, try another send
                 print("Corrupt")
@@ -121,18 +122,20 @@ class RDT:
                 if(msg_R == "ACK"):#If we receive and ACK
                     print("\n\nACK Received!\n\n")
                     break
-                else:#Else its going to be a nack
-                    print("NACK response: " + msg_R)
-
+                elif(msg_R == "NACK"):#Else its going to be a nack
+                    continue
+                else:
+                    print("Already got respose")
+                    break
     def rdt_2_1_receive(self):
         while True: #while we are getting Corrupt
             msg_S = self.getResponse()
             if(msg_S == "Corrupt"):
                 self.rdt_1_0_send("NACK")
-                sleep(.1) #So we have time to send
+                sleep(1) #So we have time to send
             else:#When we get a good packet
                 self.rdt_1_0_send("ACK")#Send back an Ack
-                sleep(.1) #So we have time to send
+                sleep(1) #So we have time to send
                 break
         return msg_S
     
