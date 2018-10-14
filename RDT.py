@@ -125,7 +125,7 @@ class RDT:
                 elif(msg_R == "NACK"):#Else its going to be a nack
                     continue
                 else:
-                    print("Already got respose")
+                    print("Already got response")
                     break
     def rdt_2_1_receive(self):
         while True: #while we are getting Corrupt
@@ -136,8 +136,8 @@ class RDT:
             else:#When we get a good packet
                 self.rdt_1_0_send("ACK")#Send back an Ack
                 sleep(1) #So we have time to send
-                break
-        return msg_S
+                return msg_S
+        
     
     def rdt_3_0_send(self, msg_S):
         pass
