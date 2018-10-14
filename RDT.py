@@ -18,7 +18,7 @@ class Packet:
     @classmethod
     def from_byte_S(self, byte_S):
         if Packet.corrupt(byte_S):
-            raise RuntimeError('Cannot initialize Packet: byte_S is corrupt')
+            return "Corrupt"
         #extract the fields
         seq_num = int(byte_S[Packet.length_S_length : Packet.length_S_length+Packet.seq_num_S_length])
         msg_S = byte_S[Packet.length_S_length+Packet.seq_num_S_length+Packet.checksum_length :]
@@ -93,6 +93,8 @@ class RDT:
                 return ret_S #not enough bytes to read the whole packet
             #create packet from buffer content and add to return string
             p = Packet.from_byte_S(self.byte_buffer[0:length])
+            if(p == "Corrupt"):
+                return "Corrupt"
             ret_S = p.msg_S if (ret_S is None) else ret_S + p.msg_S
             #remove the packet bytes from the buffer
             self.byte_buffer = self.byte_buffer[length:]
@@ -100,38 +102,34 @@ class RDT:
 
     sequenceNumber = 0
     sequenceNumbers = [1,0]
-    def getResponse(self):
+    def getResponse(self):#Gets response in sync
         msg_S = None
         while True:
             msg_S = self.rdt_1_0_receive()
             if(not msg_S == None):
                 break
-        return msg_S
+        return msg_S#returns Valid return or returns "Corrupt"
     def rdt_2_1_send(self, msg_S):
-        packet = Packet(self.sequenceNumber,msg_S)
         while True:
-            self.rdt_1_0_send(packet.get_byte_S())
-            msg_S = self.getResponse()
-            if(msg_S == "Corrupt"):
-                print("WOWOWOWOOWOW")
+            self.rdt_1_0_send(msg_S) #Sending with rdt_1_0
+            msg_R = self.getResponse() #Get Valid response
+            if(msg_R == "Corrupt"):#if corrupt, print corrupt, try another send
+                print("Corrupt")
+                sleep(1)
             else:
-                rp = Packet(self.sequenceNumber,msg_S)
-                if(msg_S == "ACK"):
-                    print("ACK Reveived!")
+                if(msg_R == "ACK"):#If we receive and ACK
+                    print("\n\nACK Received!\n\n")
                     break
-                else:
-                    print(rp.get_byte_S()+"\n\n")
-                    print("Not bad!")
-                    break
-        
+                else:#Else its going to be a nack
+                    print("NACK!")
+
     def rdt_2_1_receive(self):
         while True:
+            sleep(.1)
             msg_S = self.getResponse()
-            rp = Packet(self.sequenceNumber,msg_S)
-            if(rp.get_byte_S() == "Corrupt"):
+            if(msg_S == "Corrupt"):
                 self.rdt_1_0_send("NACK")
             else:
-                print("ACK")
                 self.rdt_1_0_send("ACK")
                 break
         return msg_S
