@@ -54,23 +54,6 @@ class NetworkLayer:
     def __del__(self):
         if self.sock is not None: self.sock.close()
         if self.conn is not None: self.conn.close()
-    def send_ACK(self):
-        totalsent = 0
-        msg_S = "ACK"
-        while totalsent < len("ACK"):
-            sent = self.conn.send(msg_S[totalsent:].encode('utf-8'))
-            if sent == 0:
-                raise RuntimeError("socket connection broken")
-            totalsent = totalsent + sent
-            
-    def send_NACK(self):
-        totalsent = 0
-        msg_S = "NACK"
-        while totalsent < len("ACK"):
-            sent = self.conn.send(msg_S[totalsent:].encode('utf-8'))
-            if sent == 0:
-                raise RuntimeError("socket connection broken")
-            totalsent = totalsent + sent
 
     def udt_send(self, msg_S):
         #return without sending if the packet is being dropped

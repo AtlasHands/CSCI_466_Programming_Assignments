@@ -35,7 +35,7 @@ class Packet:
         checksum_S = checksum.hexdigest()
         #compile into a string
         return length_S + seq_num_S + checksum_S + self.msg_S
-   
+
     def getChecksum(self):
          #convert sequence number of a byte field of seq_num_S_length bytes
         seq_num_S = str(self.seq_num).zfill(self.seq_num_S_length)
@@ -45,7 +45,9 @@ class Packet:
         checksum = hashlib.md5((length_S+seq_num_S+self.msg_S).encode('utf-8'))
         checksum_S = checksum.hexdigest()
         return checksum_S
-
+    @staticmethod
+    def get_msg_S(response):
+        return response[10+10+32 :]
     @staticmethod
     def corrupt(byte_S):
         #extract the fields
@@ -64,7 +66,7 @@ class RDT:
     seq_num = 1
     ## buffer of bytes read from network
     byte_buffer = '' 
-
+    recv_byte_buffer = ''
     def __init__(self, role_S, server_S, port):
         self.network = Network.NetworkLayer(role_S, server_S, port)
     
@@ -95,35 +97,44 @@ class RDT:
             #remove the packet bytes from the buffer
             self.byte_buffer = self.byte_buffer[length:]
             #if this was the last packet, will return on the next iteration
-            
+
     sequenceNumber = 0
     sequenceNumbers = [1,0]
+    def getResponse(self):
+        msg_S = None
+        while True:
+            msg_S = self.rdt_1_0_receive()
+            if(not msg_S == None):
+                break
+        return msg_S
     def rdt_2_1_send(self, msg_S):
         packet = Packet(self.sequenceNumber,msg_S)
-        self.network.udt_send(packet.get_byte_S())
-        response = self.network.udt_receive()
-        self.byte_buffer += response
-        responsePacket = Packet(self.sequenceNumber,response)
         while True:
-            if(Packet.corrupt(responsePacket.get_byte_S()) or self.byte_buffer == "NACK".encode("utf-8")):
-                self.network.udt_send(packet)
-                self.byte_buffer = self.network.udt_receive()
-            elif(not Packet.corrupt(responsePacket.get_byte_S()) or self.byte_buffer == "ACK".encode("utf-8")):
-                self.sequenceNumber = self.sequenceNumbers[self.sequenceNumber]
-                break
+            self.rdt_1_0_send(packet.get_byte_S())
+            msg_S = self.getResponse()
+            if(msg_S == "Corrupt"):
+                print("WOWOWOWOOWOW")
             else:
-                print("No condition matched")
+                rp = Packet(self.sequenceNumber,msg_S)
+                if(msg_S == "ACK"):
+                    print("ACK Reveived!")
+                    break
+                else:
+                    print(rp.get_byte_S()+"\n\n")
+                    print("Not bad!")
+                    break
         
     def rdt_2_1_receive(self):
-        response = self.network.udt_receive()
-        responsePacket = Packet(self.sequenceNumber,response);
-        self.byte_buffer += response
         while True:
-            if(not Packet.corrupt(responsePacket.get_byte_S)):
-                self.network.send_ACK();
-                return responsePacket.msg_S
+            msg_S = self.getResponse()
+            rp = Packet(self.sequenceNumber,msg_S)
+            if(rp.get_byte_S() == "Corrupt"):
+                self.rdt_1_0_send("NACK")
             else:
-                self.network.send_NACK();
+                print("ACK")
+                self.rdt_1_0_send("ACK")
+                break
+        return msg_S
     
     def rdt_3_0_send(self, msg_S):
         pass
@@ -136,7 +147,7 @@ if __name__ == '__main__':
     parser =  argparse.ArgumentParser(description='RDT implementation.')
     parser.add_argument('role', help='Role is either client or server.', choices=['client', 'server'])
     parser.add_argument('server', help='Server.')
-    parser.add_argument('port', help='Port.', type=int)
+    parser.add_argdument('port', help='Port.', type=int)
     args = parser.parse_args()
     
     rdt = RDT(args.role, args.server, args.port)
